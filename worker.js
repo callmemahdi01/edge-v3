@@ -64,7 +64,6 @@ B64[95] = 63;
 const budgetWaiters = new Set();
 const dialFailCache = new Map();
 let total = 0;
-let flushScratch = new Uint8Array(65536);
 
 function wakeBudgetWaiters() {
   if (!budgetWaiters.size) return;
@@ -329,15 +328,14 @@ function handleTraffic(ws, qs, early) {
       out = buf[0];
       buf[0] = null;
     } else {
-      if (flushScratch.length < n) flushScratch = new Uint8Array(n);
+      out = new Uint8Array(n);
       let o = 0;
       for (let i = 0; i < count; i++) {
         const c = buf[i];
         buf[i] = null;
-        flushScratch.set(c, o);
+        out.set(c, o);
         o += c.byteLength;
       }
-      out = n === flushScratch.length ? flushScratch : flushScratch.subarray(0, n);
     }
     if (buf.length > 64) buf.length = 0;
     bufCount = 0;
